@@ -1,0 +1,18 @@
+"eventname":"anniversary",
+"startdate":"20220606",
+"enddate":"20220606",
+"desc":"uncle and aunt 25th anniversary",
+"type":"offline",
+"location":"lucknow",
+"eventlink":"https://sparsh-saxena.netlify.app/",
+"email":"khushi2605@gmail.com" 
+
+
+
+
+"fname":"sparsh",
+"lname":"saxena",
+"email":"dhjhjh8938@gmail.com",
+"phone":"87867587",
+"password":"t@sp2345",
+"username":"gyuth456"
