@@ -3,6 +3,7 @@ require("dotenv").config()
 const express = require('express');
 // using bcrypt to store hashed passwords in our DB
 const bcrypt = require("bcrypt");
+const bodyParser = require('body-parser');
 //the generateAccessToken function
 const jwt = require("jsonwebtoken");
 const generateAccessToken = require("./generateAccessToken");
@@ -16,6 +17,8 @@ const DB_DATABASE = process.env.DB_DATABASE
 const port = process.env.PORT
 
 var mysql = require('mysql');
+
+
 const { add, result } = require("lodash");
 var db = mysql.createPool({
   host: DB_HOST, // your host name
@@ -32,7 +35,13 @@ db.getConnection( (err, connection)=> {
 
 // initializing app variable with express
 const app = express();
+// app.use(express.urlencoded());
 
+app.use(bodyParser.json());
+ 
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 // express. json() is a method inbuilt in express to recognize the incoming Request Object as a JSON Object.
 // middleware to read req.body.<params>
 app.use(express.json());
@@ -130,7 +139,7 @@ app.post("/changepassword", async (req, res)=> {
         const sqlSearch = "SELECT * FROM user WHERE email = ?"
         const search_query = mysql.format(sqlSearch,[email])
         const sqlUpdate = "UPDATE `user` SET `password` = ? WHERE `email` = ?;"
-        const update_query = mysql.format(sqlUpdate,[ email, password])
+        const update_query = mysql.format(sqlUpdate,[password, email])
         await connection.query (search_query, async (err, result) => {
             connection.release()
             
@@ -174,8 +183,9 @@ app.delete("/logout", (req,res)=>{
 
 
 // adding event to database
-app.post("/addevent", (res, req)=>{
+app.get("/addevent", (res, req)=>{
     console.log("inside addevent function")
+    console.log(req.body);
     const eventname = req.body.eventname;
     console.log(eventname);
     const startdate = req.body.startdate;
@@ -189,7 +199,7 @@ app.post("/addevent", (res, req)=>{
     db.getConnection( async (err, connection) => {
         if (err) throw (err)
         var user_id
-        const finduserid = "SELECT uid FROM user WHERE email=?"
+        const finduserid = "SELECT uid FROM user WHERE email = ?"
         const search_query = mysql.format(finduserid,[email])
         connection.query(search_query, (err, result)=>{
             if (err) throw (err)
@@ -208,6 +218,43 @@ app.post("/addevent", (res, req)=>{
             res.send("-------> event created")
         })
 
+    })
+})
+
+
+// event update
+app.post("/eventupdate", (res, req)=>{
+    const email = req.body.email;
+    const eventname = req.body.eventname;
+    const startdate = req.body.startdate;
+    const enddate = req.body.enddate;
+    const desc = req.body.desc;
+    const type = req.body.type;
+    const location = req.body.location;
+    const eventlink = req.body.eventlink;
+    
+    db.getConnection( async (err, connection) => {
+        if (err) throw (err)
+        var user_id
+        const finduserid = "SELECT uid FROM user WHERE email = ?"
+        const search_query = mysql.format(finduserid,[email])
+        connection.query(search_query, (err, result)=>{
+            if (err) throw (err)
+            else setvalue(result)
+        });
+        function setvalue(result) {
+            user_id = result;
+        }
+
+
+        const sqlUpdateevent = " UPDATE `outshade-db`.`event` SET `eventname` = ?, `startdate` = ?, `enddate` = ?, `desc` = ?, `type` = ?, `location` = ?, `eventlink` = ? WHERE (`user` = ?);"
+        const update_query = mysql.format(sqlUpdateevent,[eventname, startdate, enddate, desc, type, location, eventlink, user_id])
+
+        connection.query(update_query, (err, result)=>{
+            connection.release()
+            if (err) throw (err)
+            res.send("-------> event created")
+        })
     })
 })
 
